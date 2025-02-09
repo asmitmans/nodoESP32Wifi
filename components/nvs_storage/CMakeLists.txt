@@ -1,1 +1,0 @@
-idf_component_register(SRCS "nvs_storage.c" INCLUDE_DIRS "." REQUIRES sensor_manager)
