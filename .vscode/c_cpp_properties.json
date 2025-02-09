@@ -15,7 +15,7 @@
 		  ],
 		  "limitSymbolsToIncludedHeaders": false
 		},
-		"compilerPath": "/home/asb/.espressif/tools/xtensa-esp32-elf/esp-12.2.0_20230208/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc"
+		"compilerPath": "${env:IDF_TOOLS_PATH}/tools/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc"
 	  }
 	],
 	"version": 4
