@@ -68,7 +68,7 @@ static uint64_t calcular_tiempo_restante(uint64_t time_start) {
 static bool conectar_wifi() {
     ESP_LOGI(TAG, "Conectando a Wi-Fi...");
     wifi_init();
-
+    
     for (int i = 0; i < WIFI_MAX_RETRIES; i++) {
         if (is_wifi_connected()) {
             ESP_LOGI(TAG, "Wi-Fi conectado.");

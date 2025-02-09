@@ -6,10 +6,12 @@
 #include "nvs_flash.h"
 #include "esp_event.h"
 #include "esp_netif.h" 
+#include "sdkconfig.h"  // Para acceder a CONFIG_WIFI_SSID y CONFIG_WIFI_PASSWORD
 
 static const char *TAG = "WIFI_MANAGER";
 static bool wifi_connected = false;   // Estado de la conexión Wi-Fi
 
+// **Manejador de eventos Wi-Fi**
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
 	
 	if (event_base == WIFI_EVENT) {
@@ -21,7 +23,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
 			case WIFI_EVENT_STA_DISCONNECTED:
 				wifi_connected = false;
 				ESP_LOGW(TAG, "Desconectado. Reintentando...");
-				esp_wifi_connect();	// Reconexion automatica
+				esp_wifi_connect();	// Reconexión automática
 				break;
 		}
 
@@ -31,10 +33,12 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
 	}
 }
 
+// **Función para verificar si el Wi-Fi está conectado**
 bool is_wifi_connected() {
     return wifi_connected;
 }
 
+// **Inicialización del Wi-Fi**
 void wifi_init() {
 
 	// Inicialización del almacenamiento en NVS
@@ -48,7 +52,6 @@ void wifi_init() {
 	esp_netif_init();
 	// Creación del bucle de eventos por defecto
 	esp_event_loop_create_default();
-
 	// Configuración de la interfaz de red Wi-Fi en modo estación (STA)
 	esp_netif_create_default_wifi_sta();
 
@@ -56,11 +59,11 @@ void wifi_init() {
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	esp_wifi_init(&cfg);
 
-	// Configuración de las credenciales Wi-Fi
+	// Configuración de las credenciales Wi-Fi obtenidas desde menuconfig
 	wifi_config_t wifi_config = {
 		.sta = {
-			.ssid = WIFI_SSID,
-			.password = WIFI_PASS
+			.ssid = CONFIG_WIFI_SSID,
+			.password = CONFIG_WIFI_PASSWORD
 		}
 	};
 
@@ -71,11 +74,10 @@ void wifi_init() {
 	// Establecer el modo de operación en modo estación (STA)
 	esp_wifi_set_mode(WIFI_MODE_STA);
 	// Aplicar la configuración Wi-Fi (SSID y contraseña)
-	esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
+	esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
 	// Iniciar el Wi-Fi
 	esp_wifi_start();
 
 	// Confirmación por logs
-	ESP_LOGI(TAG,"Wi-Fi inicializado, conectándose a %s", WIFI_SSID );
-
+	ESP_LOGI(TAG, "Wi-Fi inicializado, conectándose a SSID: %s", CONFIG_WIFI_SSID);
 }

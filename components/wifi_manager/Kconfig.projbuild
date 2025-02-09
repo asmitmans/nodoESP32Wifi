@@ -1,15 +1,16 @@
-menu "WiFi Configuration"
+menu "Wi-Fi Configuration"
 
     config WIFI_SSID
-        string "WiFi SSID"
-        default ""
+        string "Wi-Fi SSID"
+        default "MiRedWiFi"
         help
-            Define el SSID de la red WiFi.
-
-    config WIFI_PASS
-        string "WiFi Password"
-        default ""
+            Nombre de la red Wi-Fi a la que se conectará el ESP32.
+    
+    config WIFI_PASSWORD
+        string "Wi-Fi Password"
+        default "MiClaveSecreta"
         help
-            Define la contraseña de la red WiFi.
-
-endmenu
+            Contraseña de la red Wi-Fi.
+    
+    endmenu
+    
