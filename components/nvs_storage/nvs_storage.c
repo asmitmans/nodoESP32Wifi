@@ -6,94 +6,164 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 
-#include "sensor_manager.h"
 
 static const char *TAG = "NVS_STORAGE";
+
 
 esp_err_t nvs_storage_init() {
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_LOGW(TAG, "NVS necesita reinicialización, borrando...");
         nvs_flash_erase();
         err = nvs_flash_init();
     }
-    return err;
-}
-
-esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
-    nvs_handle_t nvs_handle;
-    sensor_data_t buffer[MAX_NVS_RECORDS];
-    size_t stored_count = 0;
-
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) return err;
-
-    size_t required_size = sizeof(buffer);
-    err = nvs_get_blob(nvs_handle, NVS_KEY, buffer, &required_size);
     if (err == ESP_OK) {
-        stored_count = required_size / sizeof(sensor_data_t);
-    }
-
-    if (stored_count < MAX_NVS_RECORDS) {
-        buffer[stored_count] = *data;
-        stored_count++;
+        ESP_LOGI(TAG, "NVS inicializado correctamente.");
     } else {
-        for (int i = 1; i < MAX_NVS_RECORDS; i++) {
-            buffer[i - 1] = buffer[i];
-        }
-        buffer[MAX_NVS_RECORDS - 1] = *data;
+        ESP_LOGE(TAG, "Error inicializando NVS: %s", esp_err_to_name(err));
     }
-
-    err = nvs_set_blob(nvs_handle, NVS_KEY, buffer, stored_count * sizeof(sensor_data_t));
-    if (err == ESP_OK) {
-        nvs_commit(nvs_handle);
-    }
-
-    nvs_close(nvs_handle);
     return err;
 }
 
-size_t nvs_retrieve_failed_data(sensor_data_t *buffer) {
-    nvs_handle_t nvs_handle;
-    size_t stored_count = 0;
-
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) return 0;
-
-    size_t required_size = MAX_NVS_RECORDS * sizeof(sensor_data_t);
-    err = nvs_get_blob(nvs_handle, NVS_KEY, buffer, &required_size);
+esp_err_t nvs_set_value(const char *key, int32_t value) {
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
     if (err == ESP_OK) {
-        stored_count = required_size / sizeof(sensor_data_t);
+        err = nvs_set_i32(handle, key, value);
+        if (err == ESP_OK) {
+            nvs_commit(handle);
+            ESP_LOGI(TAG, "Valor %ld almacenado en NVS con clave: %s", value, key);
+        }
+        nvs_close(handle);
     }
-
-    nvs_close(nvs_handle);
-    return stored_count;
+    return err;
 }
 
+esp_err_t nvs_get_value(const char *key, int32_t *value) {
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    if (err == ESP_OK) {
+        err = nvs_get_i32(handle, key, value);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "Valor %ld recuperado de NVS con clave: %s", *value, key);
+        }
+        nvs_close(handle);
+    }
+    return err;
+}
+
+esp_err_t nvs_set_string(const char *key, const char *value) {
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    if (err == ESP_OK) {
+        err = nvs_set_str(handle, key, value);
+        if (err == ESP_OK) {
+            err = nvs_commit(handle);
+        }
+        nvs_close(handle);
+    }
+    return err;
+}
+
+esp_err_t nvs_get_string(const char *key, char *value, size_t max_len) {
+    nvs_handle_t handle;
+    size_t required_size = max_len;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    if (err == ESP_OK) {
+        err = nvs_get_str(handle, key, value, &required_size);
+        nvs_close(handle);
+    }
+    return err;
+}
+
+esp_err_t nvs_delete_key(const char *key) {
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    if (err == ESP_OK) {
+        err = nvs_erase_key(handle, key);
+        if (err == ESP_OK) {
+            nvs_commit(handle);
+            ESP_LOGI(TAG, "Clave eliminada de NVS: %s", key);
+        } else {
+            ESP_LOGW(TAG, "No se pudo eliminar la clave de NVS: %s", key);
+        }
+        nvs_close(handle);
+    }
+    return err;
+}
+
+// **Guardar múltiples datos en NVS con claves únicas failed_data_X**
+esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
+    ESP_LOGW(TAG, "Guardando datos en NVS...");
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    
+    if (err == ESP_OK) {
+        for (int i = 0; i < MAX_NVS_RECORDS; i++) {
+            char key[MAX_KEY_LEN];
+            snprintf(key, MAX_KEY_LEN, "failed_data_%d", i % 100);
+
+            size_t required_size = sizeof(sensor_data_t);
+            sensor_data_t dummy;
+            esp_err_t check = nvs_get_blob(handle, key, &dummy, &required_size);
+            if (check == ESP_ERR_NVS_NOT_FOUND) {
+                err = nvs_set_blob(handle, key, data, sizeof(sensor_data_t));
+                if (err == ESP_OK) {
+                    nvs_commit(handle);
+                    ESP_LOGI(TAG, "Dato guardado en %s.", key);
+                }
+                break;
+            }
+        }
+        nvs_close(handle);
+    }
+    return err;
+}
+
+// **Recuperar datos fallidos**
+size_t nvs_retrieve_failed_data(sensor_data_t *buffer) {
+    nvs_handle_t handle;
+    size_t count = 0;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    
+    if (err == ESP_OK) {
+        for (int i = 0; i < MAX_NVS_RECORDS; i++) {
+            char key[MAX_KEY_LEN];
+            snprintf(key, MAX_KEY_LEN, "failed_data_%d", i % 100);
+            size_t required_size = sizeof(sensor_data_t);
+
+            if (nvs_get_blob(handle, key, &buffer[count], &required_size) == ESP_OK) {
+                count++;
+            }
+        }
+        nvs_close(handle);
+    }
+    return count;
+}
+
+// **Borrar datos fallidos**
 esp_err_t nvs_clear_failed_data(size_t count) {
     if (count == 0) return ESP_OK;
 
-    nvs_handle_t nvs_handle;
-    sensor_data_t buffer[MAX_NVS_RECORDS];
-
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) return err;
-
-    size_t stored_count = nvs_retrieve_failed_data(buffer);
-    if (stored_count > count) {
-        for (size_t i = count; i < stored_count; i++) {
-            buffer[i - count] = buffer[i];
-        }
-        stored_count -= count;
-        err = nvs_set_blob(nvs_handle, NVS_KEY, buffer, stored_count * sizeof(sensor_data_t));
-    } else {
-        err = nvs_erase_key(nvs_handle, NVS_KEY);
-    }
-
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
+    
     if (err == ESP_OK) {
-        nvs_commit(nvs_handle);
+        for (int i = 0; i < count; i++) {
+            char key[MAX_KEY_LEN];
+            snprintf(key, MAX_KEY_LEN, "failed_data_%d", i % 100);
+            nvs_delete_key(key);
+        }
+        ESP_LOGI(TAG, "Eliminados %d registros de NVS.", count);
+        nvs_close(handle);
     }
+    return err;
+}
 
-    nvs_close(nvs_handle);
+// **Borrar todo el almacenamiento NVS**
+esp_err_t nvs_clear_all() {
+    esp_err_t err = nvs_flash_erase();
+    if (err == ESP_OK) {
+        err = nvs_flash_init();
+    }
     return err;
 }

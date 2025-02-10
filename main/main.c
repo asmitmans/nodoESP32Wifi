@@ -13,6 +13,5 @@ void app_main(void) {
     ESP_LOGI(TAG, "Iniciando sistema...");
     
     sensor_manager_init();
-    
-    ESP_LOGI(TAG, "Despues de sensor_manager_init()");
+        
 }

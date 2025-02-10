@@ -1,1 +1,1 @@
-idf_component_register(SRCS "nvs_storage.c" INCLUDE_DIRS "." REQUIRES sensor_manager)
+idf_component_register(SRCS "nvs_storage.c" INCLUDE_DIRS "." REQUIRES sensor_manager nvs_flash)
