@@ -1,0 +1,16 @@
+menu "Configuración TASK HTTP POST"
+
+	config HTTP_POST_RETRIES
+		int "Número de reintentos en caso de fallo"
+		default 1
+		help
+			Define cuántos intentos de reenvío se harán si la solicitud HTTP POST falla.
+
+	config HTTP_POST_RETRY_DELAY
+		int "Tiempo de espera entre reintentos (ms)"
+		range 500 10000
+		default 2000
+		help
+			Tiempo en milisegundos que se espera entre cada intento fallido de HTTP POST.
+				
+endmenu

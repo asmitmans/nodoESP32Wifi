@@ -3,14 +3,16 @@
 #include "freertos/queue.h"
 #include "esp_log.h"
 #include "freertos/semphr.h"
+#include "sdkconfig.h"
+
 
 #include "task_http_post.h"
 #include "http_client.h"
 #include "sensor_manager.h"
 
+
 static const char *TAG = "TASK_HTTP_POST";
-static const int HTTP_RETRY_COUNT = 3;
-static const int HTTP_RETRY_DELAY_MS = 2000;
+
 
 void task_http_post(void *pvParameters) {
     sensor_data_t data;
@@ -42,14 +44,14 @@ void task_http_post(void *pvParameters) {
 
     // **Reintentos de envío**
     bool success = false;
-    for (int i = 0; i < HTTP_RETRY_COUNT; i++) {
+    for (int i = 0; i < CONFIG_HTTP_POST_RETRIES; i++) {
         if (http_client_post(json_data)) {
             ESP_LOGI(TAG, "Datos enviados correctamente.");
             success = true;
             break;
         }
-        ESP_LOGW(TAG, "Error al enviar datos HTTP. Reintentando... (%d/%d)", i + 1, HTTP_RETRY_COUNT);
-        vTaskDelay(pdMS_TO_TICKS(HTTP_RETRY_DELAY_MS));
+        ESP_LOGW(TAG, "Error al enviar datos HTTP. Reintentando... (%d/%d)", i + 1, CONFIG_HTTP_POST_RETRIES);
+        vTaskDelay(pdMS_TO_TICKS(CONFIG_HTTP_POST_RETRY_DELAY));
     }
 
     if (!success) {

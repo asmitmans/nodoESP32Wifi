@@ -1,0 +1,17 @@
+menu "Configuración de HTTP POST"
+
+	config HTTP_POST_URL
+		string "URL del servidor HTTP POST"
+		default "http://example.com/post"
+		help
+			Especifica la URL del servidor al que se enviarán los datos.
+	
+	config HTTP_POST_TIMEOUT
+		int "Tiempo de espera en milisegundos"
+		range 3000 10000
+		default 3000
+		help
+			Define el tiempo máximo de espera en milisegundos para la respuesta del servidor HTTP POST.
+	
+endmenu
+	

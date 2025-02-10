@@ -1,6 +1,7 @@
 #include "http_client.h"
 #include "esp_log.h"
 #include "esp_http_client.h"
+#include "sdkconfig.h"
 
 
 static const char *TAG = "HTTP_CLIENT";
@@ -12,7 +13,8 @@ void http_client_init(void) {
 
 bool http_client_post(const char* json_data) {
 	esp_http_client_config_t config = {
-		.url = SERVER_URL,
+		.url = CONFIG_HTTP_POST_URL,
+		.timeout_ms = CONFIG_HTTP_POST_TIMEOUT,
 		.method = HTTP_METHOD_POST
 	};
 

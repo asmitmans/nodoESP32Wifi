@@ -1,9 +1,6 @@
 #ifndef HTTP_CLIENT_H
 #define HTTP_CLIENT_H
 
-
-#define SERVER_URL "http://192.168.100.6:55555/api/data"
-
 #include <stdbool.h>
 
 void http_client_init(void);
