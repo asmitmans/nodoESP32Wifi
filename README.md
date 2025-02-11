@@ -93,12 +93,56 @@ Conecte el sensor DHT22 al ESP32 según la siguiente tabla:
 | GND       | GND       |
 | DATA      | GPIO21    |
 
-
 ## API de Prueba
 
-Para probar el envío de datos, puede utilizar una API de prueba como 
-[JSONPlaceholder](https://jsonplaceholder.typicode.com/)
-Asegúrese de configurar la URL de la API en `menuconfig` antes de compilar.
+El proyecto utiliza una API de prueba alojada en el siguiente repositorio:  
+[Repositorio de la API de prueba](https://github.com/asmitmans/nodoESP32WifiTestAPI)
+
+### **Formato del POST**
+
+El nodo IoT envía los datos en formato `JSON` mediante una solicitud `HTTP POST` a la API.
+
+#### **Ejemplo de JSON enviado**
+```json
+{
+  "device_id": "esp32_001",
+  "timestamp": 1707139200,
+  "temperature": 22.5,
+  "humidity": 60.2,
+  "status_code": 200
+}
+```
+
+### **Significado del `status_code`**
+
+El campo `status_code` indica el estado de la medición y/o transmisión de datos:
+
+| Código | Significado |
+|--------|------------|
+| **200** | Lectura exitosa y envío correcto al servidor. |
+| **300** | Error en el envío, dato almacenado en NVS para reintento. |
+| **400** | Error de sensor, medición inválida o fuera de rango. |
+| **500** | Error crítico del sistema, el nodo entrará en `deep sleep`. |
+
+> **Nota**: Los valores pueden ser ajustados según las necesidades del sistema y 
+> la interpretación de la API.
+
+### **Detalles del EndPoint**
+
+| Método | URL | Parámetros |
+|--------|-----------------|------------|
+| `POST` | `/api/sensor_data` | Recibe los datos del sensor |
+
+### **Ejemplo de Respuesta del Servidor**
+```json
+{
+  "message": "Datos recibidos correctamente",
+  "status": 200
+}
+```
+
+> **Nota**: Se recomienda probar la API utilizando herramientas como `Postman` o 
+> `curl` antes de configurar el ESP32.
 
 ## Parámetros de Configuración en `menuconfig`
 
