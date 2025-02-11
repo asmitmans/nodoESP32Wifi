@@ -1,132 +1,119 @@
-# Nodo IoT Base (ESP32)
+# Nodo IoT con ESP32 para Monitoreo de Temperatura y Humedad
 
-Este proyecto implementa un **nodo IoT base** utilizando un **ESP32**, diseñado 
-para leer datos de un sensor de temperatura y humedad (*DHT22*), enviar la 
-información por **UART**, y controlar un **LED** según condiciones definidas. El 
-firmware está desarrollado siguiendo buenas prácticas de programación en **ESP-IDF**.
+Este proyecto implementa un nodo IoT utilizando un ESP32 para leer datos de un 
+sensor DHT22, almacenar datos fallidos en NVS y enviarlos a un servidor HTTP. 
+Está desarrollado con ESP-IDF y es configurable mediante `menuconfig`.
 
----
+## Características Principales
 
-## **Características Principales**
+- **Lectura de Sensor DHT22**: Obtiene temperatura y humedad.
+- **Almacenamiento en NVS**: Guarda datos fallidos para reintentos posteriores.
+- **Envío HTTP POST**: Envía datos a un servidor remoto.
+- **Configuración Dinámica**: Parámetros ajustables mediante `menuconfig`.
 
-- **Lectura de Sensor (DHT22):** Temperatura y humedad ambiente.  
-- **Comunicación UART:** Envío de datos a dispositivos externos.  
-- **Control de LED:** Activación del LED si la temperatura supera los 30°C.  
-- **Manejo Eficiente del Tiempo:** Basado en timers de FreeRTOS (sin bloqueos).
+## Estructura del Proyecto
 
----
+```
+nodoESP32Wifi/
+├── components/
+│   ├── dht22/
+│   ├── http_client/
+│   ├── nvs_storage/
+│   ├── sensor_manager/
+│   ├── tasks/
+│   └── wifi_manager/
+├── main/
+│   ├── main.c
+│   └── ...
+├── CMakeLists.txt
+└── README.md
+```
 
-## **Requisitos**
+## Requisitos
 
-- **Hardware:**  
-  - ESP32 (módulo ESP-WROOM-32)  
-  - Sensor DHT22 (GPIO 21)   
-  - LEDs (GPIO 22)  
-  - Resistencia pull-up para el DHT22 (4.7 kΩ recomendada)  
-  - Adaptador USB-UART para la comunicación serie (si es necesario) (GPIO16 y 17) 
+### Hardware
 
-- **Software:**  
-  - [ESP-IDF (v5.x)](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html)  
-  - VS Code o terminal con soporte para ESP-IDF  
+- **ESP32 DevKit**
+- **Sensor DHT22**
+- **Resistencia de 10kΩ** (si el módulo DHT22 no la incluye)
+- **Cables de conexión**
+- **Fuente de alimentación adecuada**
 
----
+### Software
+- **[ESP-IDF (v5.x)](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html)  **
+- **VS Code o terminal con soporte para ESP-IDF**
 
-## **Instalación y Configuración**
+## Instalación y Configuración
 
-1. **Clonar el repositorio:**
+1. **Clonar el Repositorio**
+
    ```bash
-   git clone https://github.com/usuario/nodo_base.git
-   cd nodo_base
+   git clone https://github.com/asmitmans/nodoESP32Wifi.git
+   cd nodoESP32Wifi
    ```
 
-2. **Configurar el entorno de ESP-IDF:**
-   ```bash
-   . $IDF_PATH/export.sh
-   ```
+2. **Configurar el Entorno ESP-IDF**
 
-3. **Configurar opciones del proyecto (si es necesario):**
+   Asegúrese de tener ESP-IDF instalado y configurado. 
+   Siga las instrucciones oficiales: 
+   [ESP-IDF Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/)
+   
+3. **Configurar el Proyecto**
+
+   Ejecute `menuconfig` para establecer los parámetros necesarios:
+
    ```bash
    idf.py menuconfig
    ```
 
-4. **Compilar y flashear:**
+   - **Wi-Fi SSID y Contraseña**: Navegue a `Wi-Fi Configuration` y establezca su SSID y contraseña.
+   - **URL del Servidor HTTP POST**: Vaya a `HTTP Configuration` y configure la URL de destino.
+   - **Otros Parámetros**: Ajuste los reintentos y tiempos de espera según sea necesario.
+
+4. **Compilar y Flashear**
+
    ```bash
    idf.py build
    idf.py flash
+   ```
+
+5. **Monitorear la Salida Serial**
+
+   ```bash
    idf.py monitor
    ```
 
----
+## Conexiones de Hardware
 
-## **Estructura del Proyecto**
+Conecte el sensor DHT22 al ESP32 según la siguiente tabla:
 
-```plaintext
-nodo_base/
-├── main/
-│   ├── main.c               # Punto de entrada de la aplicación
-│   ├── app_tasks.c          # Inicialización de tareas
-│   └── app_tasks.h
-└── components/
-    ├── dht22/               # Lectura del sensor DHT22
-    ├── uart_comm/           # Comunicación UART
-    ├── led/                 # Control del LED
-    └── sensor_manager/      # Lógica de negocio (lectura, procesamiento)
-```
+| Pin DHT22 | Pin ESP32 |
+|-----------|-----------|
+| VCC       | 3.3V      |
+| GND       | GND       |
+| DATA      | GPIO21    |
 
----
 
-## **Funcionamiento del Firmware**
+## API de Prueba
 
-1. **Inicialización:**  
-   - Configura el DHT22, UART y LED.  
-   - Se inicia un timer que gestiona la lectura del sensor cada 10 segundos.
+Para probar el envío de datos, puede utilizar una API de prueba como 
+[JSONPlaceholder](https://jsonplaceholder.typicode.com/)
+Asegúrese de configurar la URL de la API en `menuconfig` antes de compilar.
 
-2. **Lectura de Datos:**  
-   - Se obtiene la temperatura y la humedad del DHT22.  
-   - Los datos se envían por UART a través de `uart_comm`.
+## Parámetros de Configuración en `menuconfig`
 
-3. **Control del LED:**  
-   - Si la temperatura supera los **30°C**, se enciende el LED verde.  
-   - En caso contrario, el LED permanece apagado.
+Es esencial configurar los siguientes parámetros antes de ejecutar el proyecto:
 
-4. **Manejo Eficiente del Tiempo:**  
-   - Se utiliza un **timer de FreeRTOS** en lugar de `vTaskDelay` para evitar bloqueos innecesarios.
+- **Wi-Fi SSID y Contraseña**: Para conectar el ESP32 a su red inalámbrica.
+- **URL del Servidor HTTP POST**: Dirección del servidor que recibirá los datos.
+- **Reintentos y Tiempos de Espera**: Opcionalmente, ajuste estos valores según sus necesidades.
+
+## Consideraciones Adicionales
+
+- **NVS (Non-Volatile Storage)**: El proyecto utiliza NVS para almacenar datos que no 
+  pudieron enviarse, asegurando que no se pierdan lecturas en caso de fallos de 
+  conexión.
+- **Manejo de Errores**: Se implementan mecanismos para reintentar conexiones y envíos 
+  en caso de fallos temporales.
 
 ---
-
-## **Configuración UART (para monitoreo)**
-
-- **Baud Rate:** 115200  
-- **Data Bits:** 8  
-- **Paridad:** Ninguna  
-- **Stop Bits:** 1  
-- **Flow Control:** Desactivado  
-
----
-
-## **Notas Técnicas Importantes**
-
-- **Timers de FreeRTOS:** Se usa un timer para gestionar la lectura periódica del sensor 
-  sin bloquear tareas.  
-- **Modularización:** Cada funcionalidad está separada en componentes independientes para 
-  facilitar el mantenimiento y la escalabilidad.  
-- **Uso de `CMakeLists.txt`:** La configuración de dependencias se define a nivel de cada 
-  componente, siguiendo buenas prácticas de ESP-IDF.
-
----
-
-## **Futuras Mejoras (Opcionales)**
-
-- Implementación de conectividad Wi-Fi para enviar datos a la nube.  
-- Añadir manejo de errores avanzado y reconexión automática del sensor.  
-- Expansión para soportar múltiples sensores o protocolos de comunicación.
-
----
-
-## **Autores**
-
-- **Desarrollador:** [asmitmans]  
-- **Colaboración:** Proyecto desarrollado siguiendo buenas prácticas de firmware para 
-  sistemas embebidos en ESP32.
-
----# nodoESP32Wifi
