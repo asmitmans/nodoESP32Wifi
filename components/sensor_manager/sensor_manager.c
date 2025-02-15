@@ -113,7 +113,6 @@ void reenviar_datos_pendientes_nvs() {
     }
 }
 
-
 // Manejo de conexión Wi-Fi
 static bool conectar_wifi() {
     ESP_LOGI(TAG, "Conectando a Wi-Fi...");
@@ -171,7 +170,6 @@ static uint64_t calcular_tiempo_restante(uint64_t time_start) {
              tiempo_transcurrido, tiempo_dormir);
     return tiempo_dormir;
 }
-
 
 // Función principal
 void sensor_manager_init() {
