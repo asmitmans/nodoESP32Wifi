@@ -22,6 +22,7 @@ void sensor_manager_init(void);
 bool ntp_client_is_synced();
 uint64_t ntp_client_get_epoch(); 
 QueueHandle_t sensor_manager_get_queue(void);
+QueueHandle_t sensor_manager_get_post_queue(void);
 SemaphoreHandle_t sensor_manager_get_semaphore(void);
 
 #endif // SENSOR_MANAGER_H
