@@ -24,6 +24,7 @@ esp_err_t nvs_storage_init() {
     return err;
 }
 
+
 esp_err_t nvs_set_value(const char *key, int32_t value) {
     nvs_handle_t handle;
     esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
@@ -38,6 +39,7 @@ esp_err_t nvs_set_value(const char *key, int32_t value) {
     return err;
 }
 
+
 esp_err_t nvs_get_value(const char *key, int32_t *value) {
     nvs_handle_t handle;
     esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
@@ -50,6 +52,7 @@ esp_err_t nvs_get_value(const char *key, int32_t *value) {
     }
     return err;
 }
+
 
 esp_err_t nvs_set_string(const char *key, const char *value) {
     nvs_handle_t handle;
@@ -64,6 +67,7 @@ esp_err_t nvs_set_string(const char *key, const char *value) {
     return err;
 }
 
+
 esp_err_t nvs_get_string(const char *key, char *value, size_t max_len) {
     nvs_handle_t handle;
     size_t required_size = max_len;
@@ -74,6 +78,7 @@ esp_err_t nvs_get_string(const char *key, char *value, size_t max_len) {
     }
     return err;
 }
+
 
 esp_err_t nvs_delete_key(const char *key) {
     nvs_handle_t handle;
@@ -128,7 +133,6 @@ esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
 
     return err;
 }
-
 
 // Recuperar datos fallidos
 size_t nvs_retrieve_failed_data(sensor_data_t *buffer, char claves_existentes[MAX_NVS_RECORDS][MAX_KEY_LEN]) {

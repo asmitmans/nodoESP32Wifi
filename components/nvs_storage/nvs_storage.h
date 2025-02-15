@@ -2,11 +2,11 @@
 #define NVS_STORAGE_H
 
 #include "esp_err.h"
-#include "sensor_manager.h"  // Para usar `sensor_data_t`
+#include "sensor_manager.h"     // Para usar `sensor_data_t`
 
 #define NVS_NAMESPACE "storage"
-#define MAX_NVS_RECORDS 5  // Máximo 10 registros permitidos
-#define MAX_KEY_LEN 16      // Espacio suficiente para "failed_data_999"
+#define MAX_NVS_RECORDS 5       // Máximo 10 registros permitidos
+#define MAX_KEY_LEN 16          // Espacio suficiente para "failed_data_999"
 
 #if MAX_NVS_RECORDS > 10
     #error "MAX_NVS_RECORDS no puede ser mayor a 10"
