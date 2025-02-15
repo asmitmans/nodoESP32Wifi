@@ -82,6 +82,7 @@ static bool enviar_datos_http(sensor_data_t *data) {
 }
 
 // **Reenviar datos pendientes desde NVS**
+/*
 void reenviar_datos_pendientes_nvs() {
     sensor_data_t datos_pendientes[MAX_NVS_RECORDS];
     char claves_a_borrar[MAX_NVS_RECORDS][MAX_KEY_LEN];  
@@ -114,6 +115,38 @@ void reenviar_datos_pendientes_nvs() {
         }
     }
 }
+*/
+void reenviar_datos_pendientes_nvs() {
+    sensor_data_t datos_pendientes[MAX_NVS_RECORDS];
+    char claves_existentes[MAX_NVS_RECORDS][MAX_KEY_LEN];  
+    size_t count = nvs_retrieve_failed_data(datos_pendientes, claves_existentes);
+
+    if (count == 0) {
+        ESP_LOGI(TAG, "No hay datos pendientes en NVS.");
+        return;
+    }
+
+    size_t enviados_con_exito = 0;
+    for (size_t i = 0; i < count; i++) {
+        if (enviar_datos_http(&datos_pendientes[i])) {
+            ESP_LOGI(TAG, "Dato reenviado desde NVS: %s", claves_existentes[i]);
+            enviados_con_exito++;
+        } else {
+            ESP_LOGW(TAG, "Error reenviando dato desde NVS. Se intentará en el próximo ciclo.");
+        }
+    }
+
+    // Solo eliminamos los datos que se reenviaron con éxito
+    for (size_t j = 0; j < enviados_con_exito; j++) {
+        esp_err_t err = nvs_delete_key(claves_existentes[j]);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "Eliminado registro de NVS: %s", claves_existentes[j]);
+        } else {
+            ESP_LOGW(TAG, "Error eliminando %s: %s", claves_existentes[j], esp_err_to_name(err));
+        }
+    }
+}
+
 
 // **Manejo de conexión Wi-Fi**
 static bool conectar_wifi() {

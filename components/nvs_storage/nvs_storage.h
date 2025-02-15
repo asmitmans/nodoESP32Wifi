@@ -23,7 +23,8 @@ esp_err_t nvs_get_string(const char *key, char *value, size_t max_len);
 
 // Guarda y recupera datos fallidos
 esp_err_t nvs_store_failed_data(const sensor_data_t *data);
-size_t nvs_retrieve_failed_data(sensor_data_t *buffer);
+size_t nvs_retrieve_failed_data(sensor_data_t *buffer, char claves_existentes[MAX_NVS_RECORDS][MAX_KEY_LEN]);
+
 esp_err_t nvs_clear_failed_data(size_t count);
 
 // Elimina una clave específica
