@@ -91,35 +91,7 @@ esp_err_t nvs_delete_key(const char *key) {
     return err;
 }
 
-// **Guardar múltiples datos en NVS con claves únicas failed_data_X**
-/*
-esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
-    ESP_LOGW(TAG, "Guardando datos en NVS...");
-    nvs_handle_t handle;
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
-    
-    if (err == ESP_OK) {
-        for (int i = 0; i < MAX_NVS_RECORDS; i++) {
-            char key[MAX_KEY_LEN];
-            snprintf(key, MAX_KEY_LEN, "failed_data_%d", i % 100);
-
-            size_t required_size = sizeof(sensor_data_t);
-            sensor_data_t dummy;
-            esp_err_t check = nvs_get_blob(handle, key, &dummy, &required_size);
-            if (check == ESP_ERR_NVS_NOT_FOUND) {
-                err = nvs_set_blob(handle, key, data, sizeof(sensor_data_t));
-                if (err == ESP_OK) {
-                    nvs_commit(handle);
-                    ESP_LOGI(TAG, "Dato guardado en %s.", key);
-                }
-                break;
-            }
-        }
-        nvs_close(handle);
-    }
-    return err;
-}
-*/
+// Guardar múltiples datos en NVS con claves únicas failed_data_X
 esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
     ESP_LOGW(TAG, "Guardando datos en NVS...");
     nvs_handle_t handle;
@@ -158,28 +130,7 @@ esp_err_t nvs_store_failed_data(const sensor_data_t *data) {
 }
 
 
-// **Recuperar datos fallidos**
-/*
-size_t nvs_retrieve_failed_data(sensor_data_t *buffer) {
-    nvs_handle_t handle;
-    size_t count = 0;
-    esp_err_t err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &handle);
-    
-    if (err == ESP_OK) {
-        for (int i = 0; i < MAX_NVS_RECORDS; i++) {
-            char key[MAX_KEY_LEN];
-            snprintf(key, MAX_KEY_LEN, "failed_data_%d", i % 100);
-            size_t required_size = sizeof(sensor_data_t);
-
-            if (nvs_get_blob(handle, key, &buffer[count], &required_size) == ESP_OK) {
-                count++;
-            }
-        }
-        nvs_close(handle);
-    }
-    return count;
-}
-*/
+// Recuperar datos fallidos
 size_t nvs_retrieve_failed_data(sensor_data_t *buffer, char claves_existentes[MAX_NVS_RECORDS][MAX_KEY_LEN]) {
     nvs_handle_t handle;
     size_t count = 0;
@@ -193,7 +144,7 @@ size_t nvs_retrieve_failed_data(sensor_data_t *buffer, char claves_existentes[MA
             write_index = 0;
         }
 
-        // 📌 Recorrer TODAS las posibles posiciones en el buffer FIFO
+        // Recorrer TODAS las posibles posiciones en el buffer FIFO
         for (int i = 0; i < MAX_NVS_RECORDS; i++) {
             char key[MAX_KEY_LEN];
             snprintf(key, MAX_KEY_LEN, "failed_data_%d", i);
@@ -209,7 +160,7 @@ size_t nvs_retrieve_failed_data(sensor_data_t *buffer, char claves_existentes[MA
     return count;
 }
 
-// **Borrar datos fallidos**
+// Borrar datos fallidos
 esp_err_t nvs_clear_failed_data(size_t count) {
     if (count == 0) return ESP_OK;
 
@@ -228,7 +179,7 @@ esp_err_t nvs_clear_failed_data(size_t count) {
     return err;
 }
 
-// **Borrar todo el almacenamiento NVS**
+// Borrar todo el almacenamiento NVS
 esp_err_t nvs_clear_all() {
     esp_err_t err = nvs_flash_erase();
     if (err == ESP_OK) {

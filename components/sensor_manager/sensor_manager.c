@@ -32,14 +32,14 @@ QueueHandle_t sensor_manager_get_post_queue(void) {
     return http_post_result_queue;
 }
 
-// **Manejar fallos críticos**
+// Manejar fallos críticos
 static void manejar_fallo(const char *motivo) {
     ESP_LOGE(TAG, "Fallo crítico: %s. Entrando en deep sleep...", motivo);
     esp_sleep_enable_timer_wakeup(MEDICION_INTERVALO_MS * 1000);
     esp_deep_sleep_start();
 }
 
-// **Inicializar recursos**
+// Inicializar recursos
 static void inicializar_recursos() {
     sensor_data_queue = xQueueCreate(1, sizeof(sensor_data_t));
     if (sensor_data_queue == NULL) {
@@ -55,7 +55,7 @@ static void inicializar_recursos() {
     nvs_storage_init();
 }
 
-// **Enviar datos vía HTTP**
+// Enviar datos vía HTTP
 static bool enviar_datos_http(sensor_data_t *data) {
     ESP_LOGI(TAG, "Intentando enviar datos...");
 
@@ -81,41 +81,7 @@ static bool enviar_datos_http(sensor_data_t *data) {
     return envio_exitoso;
 }
 
-// **Reenviar datos pendientes desde NVS**
-/*
-void reenviar_datos_pendientes_nvs() {
-    sensor_data_t datos_pendientes[MAX_NVS_RECORDS];
-    char claves_a_borrar[MAX_NVS_RECORDS][MAX_KEY_LEN];  
-    size_t count = nvs_retrieve_failed_data(datos_pendientes);
-
-    if (count == 0) {
-        ESP_LOGI(TAG, "No hay datos pendientes en NVS.");
-        return;
-    }
-
-    size_t enviados_con_exito = 0;
-    for (size_t i = 0; i < count; i++) {
-        if (enviar_datos_http(&datos_pendientes[i])) {
-            ESP_LOGI(TAG, "Dato reenviado desde NVS.");
-            snprintf(claves_a_borrar[enviados_con_exito], MAX_KEY_LEN, "failed_data_%d", i);
-            enviados_con_exito++;
-        } else {
-            ESP_LOGW(TAG, "Error reenviando dato desde NVS. Se intentará en el próximo ciclo.");
-        }
-    }
-
-    if (enviados_con_exito > 0) {
-        for (size_t j = 0; j < enviados_con_exito; j++) {
-            esp_err_t err = nvs_delete_key(claves_a_borrar[j]);
-            if (err == ESP_OK) {
-                ESP_LOGI(TAG, "Eliminado registro de NVS: %s", claves_a_borrar[j]);
-            } else {
-                ESP_LOGW(TAG, "Error eliminando %s: %s", claves_a_borrar[j], esp_err_to_name(err));
-            }
-        }
-    }
-}
-*/
+// Reenviar datos pendientes desde NVS
 void reenviar_datos_pendientes_nvs() {
     sensor_data_t datos_pendientes[MAX_NVS_RECORDS];
     char claves_existentes[MAX_NVS_RECORDS][MAX_KEY_LEN];  
@@ -148,7 +114,7 @@ void reenviar_datos_pendientes_nvs() {
 }
 
 
-// **Manejo de conexión Wi-Fi**
+// Manejo de conexión Wi-Fi
 static bool conectar_wifi() {
     ESP_LOGI(TAG, "Conectando a Wi-Fi...");
     wifi_init();
@@ -166,7 +132,7 @@ static bool conectar_wifi() {
     return false;
 }
 
-// **Manejo de sincronización NTP**
+// Manejo de sincronización NTP
 static bool sincronizar_ntp(uint64_t *epoch_time, uint64_t timestamp_start) {
     ESP_LOGI(TAG, "Sincronizando NTP...");
     ntp_client_init(NTP_SERVER);
@@ -193,7 +159,7 @@ static bool sincronizar_ntp(uint64_t *epoch_time, uint64_t timestamp_start) {
     return false;
 }
 
-// **Tiempo de espera restante**
+// Tiempo de espera restante
 static uint64_t calcular_tiempo_restante(uint64_t time_start) {
     uint64_t timestamp_end = esp_timer_get_time();
     uint64_t tiempo_transcurrido = (timestamp_end - time_start) / 1000;
@@ -206,7 +172,8 @@ static uint64_t calcular_tiempo_restante(uint64_t time_start) {
     return tiempo_dormir;
 }
 
-// **Función principal**
+
+// Función principal
 void sensor_manager_init() {
     ESP_LOGI(TAG, "Iniciando ciclo de operación...");
 
@@ -225,7 +192,7 @@ void sensor_manager_init() {
         data.status_code = 200;
     }
 
-    // **Asignar status 300 si el dato debe ser almacenado**
+    // Asignar status 300 si el dato debe ser almacenado
     bool envio_exitoso = enviar_datos_http(&data);
     if (!envio_exitoso) {
         data.status_code = 300;
